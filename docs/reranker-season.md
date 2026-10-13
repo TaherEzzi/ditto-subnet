@@ -94,7 +94,7 @@ shadow.
 | Size | At most the three file caps plus 1 MiB of tar overhead, enforced on the streamed bytes and again on the decompressed archive. At most eight tar entries. |
 | Validation | Every check in "The artifact", run by Platform on the uploaded bytes. A violation is HTTP 422 with the reason. |
 | Duplicates | The artifact digest covers the three files. An exact duplicate of an earlier submission is HTTP 409; the first submitter keeps it. |
-| Rate | One upload per owner coldkey per 12 hours by default (HTTP 429 with `Retry-After`). Operators set `DITTO_RERANKER_UPLOADS_PER_WINDOW` and `DITTO_RERANKER_UPLOAD_WINDOW_SECONDS`; Backroom `get_reranker_submissions` shows the effective values. |
+| Rate | One accepted upload per owner coldkey per hour by default, matching the memory track's cooldown (HTTP 429 with `Retry-After`). A request refused for any other reason (signature, eligibility, size, validation, duplicate) does not use the slot. Operators set `DITTO_RERANKER_UPLOADS_PER_WINDOW` and `DITTO_RERANKER_UPLOAD_WINDOW_SECONDS`; Backroom `get_reranker_submissions` shows the effective values. |
 
 An accepted submission is stored and recorded with status `accepted`. Its
 `seed` and `seed_block_hash` stay null at intake. The trusted scorer worker

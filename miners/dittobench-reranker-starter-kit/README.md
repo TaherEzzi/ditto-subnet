@@ -50,8 +50,9 @@ fee and no payment prompt: the season is in **shadow**, so a submission is
 stored and scored but earns no weight yet.
 
 - The hotkey must be registered on the subnet and not banned.
-- One upload per owner coldkey per 12 hours by default (HTTP 429 with
-  `Retry-After` otherwise).
+- One accepted upload per owner coldkey per hour by default (HTTP 429 with
+  `Retry-After` otherwise). A rejected upload (for example a 422 validation
+  failure) does not use the slot, so fix the artifact and resubmit.
 - An artifact that is byte-for-byte identical to an earlier submission (same
   three files) is rejected; the first submitter keeps it.
 - The model check needs `onnx`. It is installed in this kit's environment; the

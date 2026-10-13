@@ -444,7 +444,29 @@ async def test_one_upload_per_owner_window_by_default(
 
     assert second.status_code == 429, second.text
     retry_after = int(second.headers["Retry-After"])
-    assert 0 < retry_after <= 12 * 3600 + 1
+    assert 0 < retry_after <= 3600 + 1
+    assert storage.put_object.await_count == 1
+    assert len(await _rows(session_maker)) == 1
+
+
+async def test_refused_uploads_do_not_consume_the_owner_window(
+    app: FastAPI,
+    client: httpx.AsyncClient,
+    session_maker: async_sessionmaker[AsyncSession],
+) -> None:
+    storage = override_get_storage_client(app)
+    invalid = await _post(
+        client, tarball(manifest_doc=manifest(base_model_license="cc-by-nc-4.0"))
+    )
+    mismatched = await _post(client, tarball(), sha256="0" * 64)
+    assert invalid.status_code == 422, invalid.text
+    assert mismatched.status_code == 400, mismatched.text
+
+    # Only an accepted submission takes the slot.
+    accepted = await _post(client, tarball())
+    assert accepted.status_code == 201, accepted.text
+    again = await _post(client, tarball(model=build_model(needle_weight=3.0)))
+    assert again.status_code == 429, again.text
     assert storage.put_object.await_count == 1
     assert len(await _rows(session_maker)) == 1
 
@@ -540,7 +562,7 @@ async def test_admin_read_requires_the_admin_token_and_counts_statuses(
         "failed": 0,
     }
     assert body["total"] == 2
-    assert body["upload_window_seconds"] == 12 * 3600
+    assert body["upload_window_seconds"] == 3600
     assert body["uploads_per_window"] == 1
     scored = next(s for s in body["submissions"] if s["status"] == "scored")
     assert scored["seed"] == str(2**63 - 1)

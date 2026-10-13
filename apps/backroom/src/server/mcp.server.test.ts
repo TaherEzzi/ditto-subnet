@@ -7569,7 +7569,7 @@ describe('Backroom MCP tools', () => {
         contract_sha256: 'e'.repeat(64),
         total: 3,
         status_counts: { accepted: 2, invalid: 0, scored: 1, failed: 0 },
-        upload_window_seconds: 43200,
+        upload_window_seconds: 3600,
         uploads_per_window: 1,
         limit: 1,
         offset: 0,
@@ -7591,7 +7591,7 @@ describe('Backroom MCP tools', () => {
         returned: 1,
         has_more: true,
         status_counts: { accepted: 2, scored: 1 },
-        upload_window_seconds: 43200,
+        upload_window_seconds: 3600,
       })
       expect(JSON.stringify(body)).toContain('18446744073709551615')
       expect(JSON.stringify(body)).not.toContain('url')

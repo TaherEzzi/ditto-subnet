@@ -135,9 +135,12 @@ VALIDATION_CONCURRENCY = 2
 
 # Per-owner submission window. Shadow intake has no fee, so this is the only
 # brake on how much storage and validation one owner can consume. The owner is
-# the registered coldkey (one budget across its hotkeys). Override with
+# the registered coldkey (one budget across its hotkeys). One hour matches the
+# memory track's cooldown. Only an accepted row counts against it: a request
+# refused before the insert (bad signature, invalid artifact, duplicate, size)
+# never consumes the slot. Override with
 # DITTO_RERANKER_UPLOAD_WINDOW_SECONDS / DITTO_RERANKER_UPLOADS_PER_WINDOW.
-DEFAULT_UPLOAD_WINDOW_SECONDS = 12 * 60 * 60
+DEFAULT_UPLOAD_WINDOW_SECONDS = 60 * 60
 DEFAULT_UPLOADS_PER_WINDOW = 1
 
 
