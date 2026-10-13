@@ -191,9 +191,9 @@ def test_reranker_season_change_is_isolated(components, ignored_paths) -> None:
 
 
 def test_reranker_workflow_is_release_owned(components, ignored_paths) -> None:
-    assert selected(
-        components, ignored_paths, ".github/workflows/reranker-ci.yml"
-    ) == {"dittobench_reranker"}
+    assert selected(components, ignored_paths, ".github/workflows/reranker-ci.yml") == {
+        "dittobench_reranker"
+    }
 
 
 def test_coding_starter_workflow_is_release_owned(components, ignored_paths) -> None:
