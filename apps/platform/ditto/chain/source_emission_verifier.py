@@ -338,12 +338,9 @@ async def read_source_emission_block(
     """
     if block < 1:
         raise ValueError("positive block required")
-    if (
-        expected_runtime_code_hash is not None
-        and expected_runtime_code_hash not in AUDITED_RUNTIME_CODE_HASHES
-        and expected_runtime_code_hash not in _INTERFACE_ADMISSIONS
-    ):
-        raise ValueError("configured runtime fingerprint is not audited")
+    # A configured fingerprint is not trusted on its own: each observed parent
+    # and block hash must equal it and pass admit_runtime below, which admits
+    # an interface-matched runtime even on a fresh process's first read.
     if cache is None:
         cache = SourceEmissionReadCache()
     if finalized_block is None:

@@ -758,3 +758,27 @@ async def test_changed_interface_names_the_moved_entry(chain: tuple) -> None:
         ValueError, match="not audited: .*storage:SubtensorModule.StakeWeight"
     ):
         await read_source_emission_block(substrate, netuid=118, block=100)
+
+
+async def test_configured_interface_admitted_runtime_reads_on_first_call(
+    chain: tuple, interface_admission
+) -> None:
+    """A fresh process has no cached admission; configuring it must not refuse."""
+    substrate, state = chain
+    state["runtime"] = _UNTAGGED
+    interface_admission(substrate, epoch_consensus=False)
+    block = await read_source_emission_block(
+        substrate, netuid=118, block=100, expected_runtime_code_hash=_UNTAGGED
+    )
+    assert block.runtime_code_hash == _UNTAGGED
+
+
+async def test_configured_fingerprint_must_match_the_observed_runtime(
+    chain: tuple, interface_admission
+) -> None:
+    substrate, _ = chain
+    interface_admission(substrate, epoch_consensus=False)
+    with pytest.raises(ValueError, match="not audited"):
+        await read_source_emission_block(
+            substrate, netuid=118, block=100, expected_runtime_code_hash=_UNTAGGED
+        )

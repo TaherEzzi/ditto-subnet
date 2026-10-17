@@ -206,6 +206,17 @@ def runtime_interface(metadata: Any) -> RuntimeInterface:
     Raises ``ValueError`` on any metadata shape it does not understand, so an
     unreadable runtime fails closed exactly like an unaudited one.
     """
+    try:
+        return _runtime_interface(metadata)
+    except (KeyError, IndexError, TypeError, AttributeError) as error:
+        # Malformed nodes deeper than the explicit checks still fail closed
+        # through the one documented error type.
+        raise ValueError(
+            f"malformed runtime metadata: {type(error).__name__}"
+        ) from error
+
+
+def _runtime_interface(metadata: Any) -> RuntimeInterface:
     body = _metadata_body(metadata)
     types = _Types(body.get("types"))
     pallets = {
@@ -233,6 +244,10 @@ def runtime_interface(metadata: Any) -> RuntimeInterface:
         if kind == "Plain":
             resolved: Any = {"plain": types.canonical(spec)}
         elif kind == "Map":
+            if not isinstance(spec, dict) or "key" not in spec or "value" not in spec:
+                raise ValueError(
+                    f"invalid map storage type for {pallet_name}.{item_name}"
+                )
             resolved = {
                 "map": {
                     "hashers": spec.get("hashers"),

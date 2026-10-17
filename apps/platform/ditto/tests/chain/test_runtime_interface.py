@@ -96,6 +96,27 @@ def test_missing_consumed_entry_is_unreadable_not_degenerate() -> None:
         runtime_interface(changed)
 
 
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda m: entry(m, "SubtensorModule", "Keys")["type"]["Map"].pop("key"),
+        lambda m: entry(m, "SubtensorModule", "Keys")["type"].update(Map=7),
+        lambda m: type_def(m, EVENTS)["def"]["variant"]["variants"][0]["fields"][0].pop(
+            "type"
+        ),
+        lambda m: type_def(m, TREE)["def"].update(array={"len": 2}),
+    ],
+    ids=["map-without-key", "map-not-a-dict", "field-without-type", "array-no-type"],
+)
+def test_malformed_metadata_fails_closed_as_value_error(mutate) -> None:
+    changed = clone(metadata())
+    type_def(changed, TREE)["def"] = {"array": {"len": 2, "type": U16}}
+    entry(changed, "SubtensorModule", "Weights")["type"]["Map"]["value"] = TREE
+    mutate(changed)
+    with pytest.raises(ValueError):
+        runtime_interface(changed)
+
+
 def test_epoch_consensus_is_optional_and_reported() -> None:
     assert runtime_interface(metadata()).has_epoch_consensus is True
     legacy = runtime_interface(metadata(epoch_consensus=False))
