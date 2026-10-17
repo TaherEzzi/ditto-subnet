@@ -117,6 +117,32 @@ def test_malformed_metadata_fails_closed_as_value_error(mutate) -> None:
         runtime_interface(changed)
 
 
+def test_unboundedly_deep_types_fail_closed_as_value_error() -> None:
+    """An acyclic chain deeper than the interpreter stack is unreadable, not a crash."""
+    changed = clone(metadata())
+    rows = body(changed)["types"]["types"]
+    depth, start = 5000, 1000
+    rows += [
+        {
+            "id": start + i,
+            "type": {
+                "path": [],
+                "params": [],
+                "def": (
+                    {"sequence": {"type": start + i + 1}}
+                    if i < depth
+                    else {"primitive": "u8"}
+                ),
+                "docs": [],
+            },
+        }
+        for i in range(depth + 1)
+    ]
+    entry(changed, "SubtensorModule", "Weights")["type"]["Map"]["value"] = start
+    with pytest.raises(ValueError, match="RecursionError"):
+        runtime_interface(changed)
+
+
 def test_epoch_consensus_is_optional_and_reported() -> None:
     assert runtime_interface(metadata()).has_epoch_consensus is True
     legacy = runtime_interface(metadata(epoch_consensus=False))

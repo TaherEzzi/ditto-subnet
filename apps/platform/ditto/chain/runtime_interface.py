@@ -208,7 +208,7 @@ def runtime_interface(metadata: Any) -> RuntimeInterface:
     """
     try:
         return _runtime_interface(metadata)
-    except (KeyError, IndexError, TypeError, AttributeError) as error:
+    except (KeyError, IndexError, TypeError, AttributeError, RecursionError) as error:
         # Malformed nodes deeper than the explicit checks still fail closed
         # through the one documented error type.
         raise ValueError(
