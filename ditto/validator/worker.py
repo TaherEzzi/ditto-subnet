@@ -171,7 +171,7 @@ from ditto_screening_protocol.treasury_enforcement import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from ditto.api_models.system_health import SystemMetrics
+    from ditto.api_models.system_health import HostSpecs, SystemMetrics
     from ditto.api_models.validator import (
         BenchmarkRuntimeSettings,
         FailJobReason,
@@ -931,6 +931,16 @@ class ValidatorWorker:
     def _retain_failed_progress_until(self, value: float) -> None:
         self._slot_state().retain_failed_progress_until = value
 
+    def _collect_host_specs(self, protocol_version: int) -> HostSpecs | None:
+        """Return the once-per-boot hardware block for a v32+ heartbeat."""
+        if protocol_version < 32 or self._system_metrics is None:
+            return None
+        try:
+            return self._system_metrics.host_specs()
+        except Exception as e:  # noqa: BLE001 - telemetry must never gate work
+            logger.warning("host spec collection failed; omitting them: %s", e)
+            return None
+
     def _collect_system_metrics(self) -> SystemMetrics | None:
         """Return the cached coarse host sample, or ``None`` if unobservable.
 
@@ -1644,6 +1654,7 @@ class ValidatorWorker:
             if stack_health is None:
                 stack_health = fallback_stack_health()
             updater_status = collect_updater_status(observed_at=timestamp)
+            host_specs = self._collect_host_specs(build.protocol_version)
             signature = sign_heartbeat(
                 self._keypair,
                 validator_hotkey=self._config.validator_hotkey,
@@ -1661,6 +1672,7 @@ class ValidatorWorker:
                 confirmation_progress=self._confirmation_progress_snapshot(),
                 updater_status=updater_status,
                 weights_fold=self._last_weights_fold,
+                host_specs=host_specs,
                 timestamp=timestamp,
             )
             request = ValidatorHeartbeatRequest(
@@ -1679,6 +1691,7 @@ class ValidatorWorker:
                 confirmation_progress=self._confirmation_progress_snapshot(),
                 updater_status=updater_status,
                 weights_fold=self._last_weights_fold,
+                host_specs=host_specs,
                 timestamp=timestamp,
                 signature=signature,
             )
