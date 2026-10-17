@@ -364,7 +364,9 @@ async def upsert_validator_heartbeat(
     row.confirmation_progress = confirmation_progress
     row.updater_status = updater_status
     row.weights_fold = weights_fold
-    row.host_specs = host_specs
+    if host_specs is not None:
+        # Fixed hardware: a later failed probe keeps the last announcement.
+        row.host_specs = host_specs
     try:
         row.benchmark_capacity = _reconcile_capacity_progress(
             row.benchmark_capacity if not is_new else None, benchmark_capacity

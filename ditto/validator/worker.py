@@ -41,6 +41,7 @@ from ditto.api_models.confirmation_progress import (
 )
 from ditto.api_models.router_ledger import RouterLedgerResponse
 from ditto.api_models.stack_health import ValidatorStackHealth
+from ditto.api_models.system_health import HostSpecs
 from ditto.api_models.validator import (
     ConfirmationDatasetPin,
     ValidatorHeartbeatRequest,
@@ -171,7 +172,7 @@ from ditto_screening_protocol.treasury_enforcement import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from ditto.api_models.system_health import HostSpecs, SystemMetrics
+    from ditto.api_models.system_health import SystemMetrics
     from ditto.api_models.validator import (
         BenchmarkRuntimeSettings,
         FailJobReason,
@@ -936,10 +937,12 @@ class ValidatorWorker:
         if protocol_version < 32 or self._system_metrics is None:
             return None
         try:
-            return self._system_metrics.host_specs()
+            specs = self._system_metrics.host_specs()
         except Exception as e:  # noqa: BLE001 - telemetry must never gate work
             logger.warning("host spec collection failed; omitting them: %s", e)
             return None
+        # Signed bytes: anything but a validated block announces nothing.
+        return specs if isinstance(specs, HostSpecs) else None
 
     def _collect_system_metrics(self) -> SystemMetrics | None:
         """Return the cached coarse host sample, or ``None`` if unobservable.

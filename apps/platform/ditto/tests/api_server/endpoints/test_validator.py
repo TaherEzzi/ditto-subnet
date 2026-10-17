@@ -2017,7 +2017,19 @@ class TestHeartbeat:
                 "enabled": True,
                 "channel": "compat-2",
                 "state": "idle",
+                "current_descriptor": (
+                    "ghcr.io/ditto-assistant/ditto-subnet-stack@sha256:" + "a" * 64
+                ),
+                "current_version": "0.370.0",
+                "candidate_descriptor": None,
+                "candidate_version": None,
+                "failed_candidate_count": 0,
+                "retry_after": None,
+                "suppressed": False,
+                "last_failure_at": None,
+                "last_failure_reason": None,
                 "observed_at": timestamp,
+                "self_refresh_installed": False,
             },
         }
         # A failed probe omits the block and signs the v23 domain.
@@ -2049,9 +2061,21 @@ class TestHeartbeat:
         )
         assert member["host_specs"] == specs
 
+        # A later failed probe keeps the last announced hardware.
+        omitted = await client.post(
+            "/api/v1/validator/heartbeat",
+            headers=_AUTH_HEADER,
+            json=_heartbeat_payload(**{**common, "timestamp": timestamp + 2}),
+        )
+        assert omitted.status_code == 200, omitted.text
+        async with session_maker() as session:
+            row = await session.get(ValidatorHeartbeat, _VALIDATOR_HOTKEY)
+            assert row is not None
+            assert row.host_specs == specs
+
         # The specs are signed: an inflated RAM figure fails verification.
         tampered = _heartbeat_payload(
-            **{**common, "timestamp": timestamp + 2}, host_specs=specs
+            **{**common, "timestamp": timestamp + 3}, host_specs=specs
         )
         tampered["host_specs"] = {**specs, "memory_total_mib": 262_144}
         rejected = await client.post(

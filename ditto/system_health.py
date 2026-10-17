@@ -107,9 +107,12 @@ def collect_host_specs(
     """
     try:
         logical = cpu_count()
+        if not logical:
+            # Unknown is omitted, never reported as a one-CPU host.
+            return None
         physical = cpu_count(logical=False)
         return HostSpecs(
-            cpu_count=int(logical or 1),
+            cpu_count=int(logical),
             cpu_physical_cores=int(physical) if physical else None,
             memory_total_mib=max(1, int(virtual_memory().total) // _MIB),
             disk_total_gib=max(1, int(disk_usage("/").total) // _GIB),

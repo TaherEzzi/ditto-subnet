@@ -29292,7 +29292,7 @@ export interface components {
             health_reasons?: string[];
             /** Healthy Slots */
             healthy_slots?: string[];
-            /** @description Fixed host hardware the validator announced at boot (heartbeat protocol v32+). Null for older validators or a failed probe. */
+            /** @description Fixed host hardware the validator last announced (heartbeat protocol v32+). A later failed probe keeps the last announcement; null when a v32 validator never announced or on older validators. */
             host_specs?: components["schemas"]["PublicHostSpecs"] | null;
             /**
              * Issuance Paused

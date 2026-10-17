@@ -156,3 +156,15 @@ def test_collector_probes_host_specs_once_per_process() -> None:
     assert collector.host_specs() is None
     assert collector.host_specs() is None
     probe.assert_called_once_with()
+
+
+def test_host_specs_unknown_cpu_count_is_omitted_not_one() -> None:
+    assert (
+        system_health.collect_host_specs(
+            cpu_count=lambda **_kwargs: None,
+            virtual_memory=lambda: SimpleNamespace(total=1024**3),
+            disk_usage=lambda _path: SimpleNamespace(total=1024**3),
+            machine=lambda: "x86_64",
+        )
+        is None
+    )
