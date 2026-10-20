@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sync GitHub Project board with issue state"""
+"""Sync GitHub Project board with issue state. Requires write-scoped GH_TOKEN."""
 
 from github import Github, ProjectColumn, Issue
 import os
