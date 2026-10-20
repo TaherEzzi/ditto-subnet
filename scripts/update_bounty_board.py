@@ -3,7 +3,7 @@
 
 from github import Github, ProjectColumn, Issue
 import os
-import yaml  # Fixed missing import
+import yaml
 
 def main():
     gh = Github(os.environ['GH_TOKEN'])
@@ -11,7 +11,12 @@ def main():
     project = repo.get_project(1)  # DittoBench Board ID
 
     # Map columns by original name (To Do, In Progress, Done)
-    columns = {col.name: col for col in project.get_columns()}
+    original_column_names = ["To Do", "In Progress", "Done"]
+    columns = {}
+    for col in project.get_columns():
+        original_name = col.name.split(' (')[0]
+        if original_name in original_column_names:
+            columns[original_name] = col
 
     for issue in repo.get_issues(labels=['bounty']):
         metadata = parse_metadata(issue.body)
@@ -25,7 +30,7 @@ def main():
         if target_col and current_col and current_col.column_id != target_col.id:
             current_col.move(target_col.id)
 
-        update_column_counters(columns)  # Pass original column mapping
+        update_column_counters(columns)
 
 def parse_metadata(body: str) -> dict:
     """Extract YAML frontmatter from issue body"""
@@ -40,8 +45,8 @@ def update_column_counters(columns: dict[str, ProjectColumn]):
         cards = col.get_cards()
         available = sum(1 for card in cards if 'available' in (card.note or '').lower())
         claimed = len(cards) - available
-        # Reset to original name with fresh counter (prevents appending)
-        col.edit(f"{orig_name} ({available}/{available+claimed} slots)")
+        # Reset to original name with fresh counter
+        col.edit(f"{orig_name} ({available}/{available + claimed} slots)")
 
 if __name__ == '__main__':
     main()

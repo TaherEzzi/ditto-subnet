@@ -11,9 +11,9 @@ Visit our [DittoBench Bounty Board](https://github.com/ditto-assistant/ditto-sub
 - **Reviewer**: Assigned maintainer
 
 ## Claiming Work
-1. Use the miner CLI to submit a hotkey-signed claim with a valid CLA signature and verified GitHub link to your work.
-2. Pay the alpha entry fee, initiating a 30-minute unpaid hold on the slot.
-3. Delivery deadline begins immediately after fee confirmation. The Platform automatically manages slot allocation.
+1. **Submit Claim**: Use the miner CLI to create a hotkey-signed claim with a valid CLA signature and a verified GitHub link to your work.
+2. **Pay Entry Fee**: Pay the alpha entry fee to secure a 30-minute unpaid hold on the bounty slot.
+3. **Deadline Starts**: The delivery deadline begins immediately after the Platform confirms the fee payment.
 
 ## Submission Rules
 1. Submit via exact commit hash in issue comments before the deadline (starts at fee confirmation).
